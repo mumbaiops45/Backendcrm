@@ -3,6 +3,16 @@ const Schema = mongoose.Schema
 
 
 const userSchema = new Schema({
+    // createdBy:  {
+    //     type: Schema.Types.ObjectId,
+    //     ref: 'User',
+    //     required: true
+    // },
+    createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: false,   
+},
     name: {
         type: String,
         required: true,

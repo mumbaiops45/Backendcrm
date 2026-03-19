@@ -5,41 +5,46 @@ const {  validationResult } = require("express-validator");
 
 const JWT_SECRETE = "NNCMumbai@1232!"
 
+
 exports.Register = async (req, res) => {
     try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).send({ errors: errors.array() });
-    }
-
-    let user = await User.findOne({ email: req.body.email });
-    if (user) {
-        return res.status(409).send("Enter a unique email");
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashpass = await bcrypt.hash(req.body.password, salt);
-
-    user = await User.create({
-        name: req.body.name,
-        email: req.body.email,
-        password: hashpass
-    });
-
-    const data = {
-        user: {
-            id: user.id, role: user.role
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
         }
-    }
-    const Authtoken = jwt.sign(data, JWT_SECRETE);
-    res.json({ Authtoken })
+
+        let existingUser = await User.findOne({ email: req.body.email });
+        if (existingUser) {
+            return res.status(409).send("Enter a unique email");
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashpass = await bcrypt.hash(req.body.password, salt);
+        let user = new User({
+            name: req.body.name,
+            email: req.body.email,
+            password: hashpass,
+            role: req.body.role
+        });
+        user.createdBy = user._id;
+        await user.save();
+
+        const data = {
+            user: {
+                id: user.id,
+                role: user.role
+            }
+        };
+
+        const AuthToken = jwt.sign(data, JWT_SECRETE);
+
+        res.json({ AuthToken });
 
     } catch (error) {
-        console.log(error.message);
-        return res.status(500).send("Internal Server Error");
+        console.log(error);
+        res.status(500).send("Internal Server Error");
     }
-
-}
+};
 
 exports.loginUser =  async (req, res) => {
     const errors = validationResult(req);
@@ -59,7 +64,7 @@ exports.loginUser =  async (req, res) => {
           .json({ error: "Please try to login with correct credentials12" });
       }
        if (!user.role) {
-            user.role = 'rep'; // Set default role
+            user.role = 'rep'; 
             await user.save();
             console.log(`Fixed role for user ${user.email} to rep`);
         }

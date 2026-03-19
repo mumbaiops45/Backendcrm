@@ -2,27 +2,24 @@ const express = require('express');
 const app = express();
 const port = 8080
 const mongoose = require('mongoose');
-const { body, validationResult } = require('express-validator');
+const { body,check, validationResult } = require('express-validator');
 const User = require('./models/User');
 const Lead = require("./models/Lead")
 const UserRouter = require("./router/user.router");
 const { Auth, authorizeRoles } = require("./middleware/Auth")
 const LeadRouter = require("./router/lead.router");
 const cors = require('cors');
-const Call = require("./models/Call")
-const Activity = require("./models/Activity");
+
 const ActivityRouter = require("./router/activity.router")
 const CreateCall = require("./router/call.router");
 const Follow = require("./models/FollowUp");
 const FollowUp = require('./models/FollowUp');
 const moment = require('moment');
-const Document = require("./models/Document");
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
-const multer = require("multer");
-const path = require('path');
 const DocumentRouter = require("./router/document.router");
 const Reports = require("./router/report.router")
+const Payments = require("./router/payment.router");
+const AddClient = require("./router/addclient.router");
+const Proposal = require("./router/proposal.router");
 
 
 
@@ -48,6 +45,12 @@ app.use("/", ActivityRouter);
 app.use("/", CreateCall);     
 app.use("/", DocumentRouter);
 app.use("/", Reports);
+app.use("/", Payments);
+app.use("/", AddClient);
+app.use("/", Proposal);
+
+
+
 
 
 app.get("/lead/:id", Auth, async (req, res) => {
