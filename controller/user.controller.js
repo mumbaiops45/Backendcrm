@@ -6,6 +6,46 @@ const {  validationResult } = require("express-validator");
 // const JWT_SECRETE = "NNCMumbai@1232!"
 
 
+// exports.Register = async (req, res) => {
+//     try {
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+
+//         let existingUser = await User.findOne({ email: req.body.email });
+//         if (existingUser) {
+//             return res.status(409).send("Enter a unique email");
+//         }
+
+//         const salt = await bcrypt.genSalt(10);
+//         const hashpass = await bcrypt.hash(req.body.password, salt);
+//         let user = new User({
+//             name: req.body.name,
+//             email: req.body.email,
+//             password: hashpass,
+//             role: req.body.role
+//         });
+//         user.createdBy = user._id;
+//         await user.save();
+
+//         const data = {
+//             user: {
+//                 id: user.id,
+//                 role: user.role
+//             }
+//         };
+
+//         const AuthToken = jwt.sign(data,  process.env.JWT_SECRETE);
+
+//         res.json({ AuthToken });
+
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).send("Internal Server Error");
+//     }
+// };
+
 exports.Register = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -20,12 +60,19 @@ exports.Register = async (req, res) => {
 
         const salt = await bcrypt.genSalt(10);
         const hashpass = await bcrypt.hash(req.body.password, salt);
+        
+        // Create user without createdBy first
         let user = new User({
             name: req.body.name,
             email: req.body.email,
             password: hashpass,
             role: req.body.role
         });
+        
+        // Save to get _id
+        await user.save();
+        
+        // Update with createdBy
         user.createdBy = user._id;
         await user.save();
 
@@ -36,8 +83,7 @@ exports.Register = async (req, res) => {
             }
         };
 
-        const AuthToken = jwt.sign(data,  process.env.JWT_SECRETE);
-
+        const AuthToken = jwt.sign(data, process.env.JWT_SECRETE);
         res.json({ AuthToken });
 
     } catch (error) {
