@@ -1,13 +1,18 @@
 const {Router} = require('express');
 const router = Router();
 const {body} = require("express-validator");
+const Lead = require("../models/Lead");
 const {Auth} = require("../middleware/Auth");
-const {CreateLead ,getTotal,RecentActivity, GetAlldata, Update, searchstate, singleLeads, searchLeads, Delete} = require("../controller/lead.controller");
+const {CreateLead ,getTotal,RecentActivity, GetAlldata, Update, searchstate, singleLeads, searchLeads, Delete , getBant, getLeaderboard} = require("../controller/lead.controller");
+
+
+router.get('/bants', getBant);
 
 
 router.get("/allleads", GetAlldata);
 router.get("/totalamount", getTotal);
 router.get("/branch/search", searchstate);
+router.get("/leaderboard",  getLeaderboard);
 //leads/search?location=Mumbai
 router.get("/leads/search", searchLeads);
 router.get("/recent-activity", RecentActivity);

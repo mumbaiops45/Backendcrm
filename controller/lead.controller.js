@@ -15,16 +15,17 @@ exports.GetAlldata = async (req, res) => {
 }
 
 
-exports.getTotal = async(req, res) =>{
+
+exports.getTotal = async (req, res) => {
     try {
         const result = await Lead.aggregate([
             {
-                $match: { isDeleted: false}
+                $match: { isDeleted: false }
             },
             {
                 $group: {
                     _id: null,
-                    totalAmount: {$sum: "$dealValue"}
+                    totalAmount: { $sum: "$dealValue" }
                 }
             }
         ]);
@@ -37,7 +38,7 @@ exports.getTotal = async(req, res) =>{
             totalAmount: formattedAmount,
         });
     } catch (error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -104,51 +105,51 @@ exports.RecentActivity = async (req, res) => {
     }
 }
 
-exports.searchstate = async(req, res) =>{
+exports.searchstate = async (req, res) => {
     try {
-        const {location} = req.query;
+        const { location } = req.query;
         let filter = {};
 
-        if(location){
+        if (location) {
             filter.location = { $regex: `^${location}$`, $options: "i" };
         }
 
         const leads = await Lead.find(filter);
 
-        if(!leads || leads.length === 0){
+        if (!leads || leads.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: "No leads found for given filters"
             });
         }
-       
+
         res.status(200).json({
             success: true,
             leads
         });
     } catch (error) {
-      console.log(error.message)  
-      res.status(500).json({message: "Internal Server Error"});
+        console.log(error.message)
+        res.status(500).json({ message: "Internal Server Error" });
     }
 }
 
-exports.searchLeads = async(req, res)  =>{
+exports.searchLeads = async (req, res) => {
     try {
-        const {location, stage, priority, source , rep} = req.query;
+        const { location, stage, priority, source, rep } = req.query;
         let filter = {};
-        if(location){
+        if (location) {
             filter.location = { $regex: `^${location}$`, $options: "i" };
         }
-        if(stage){
-            filter.stage = { $regex: `^${stage}$`, $options: "i" }; 
+        if (stage) {
+            filter.stage = { $regex: `^${stage}$`, $options: "i" };
         }
-        if(priority){
-            filter.priority = { $regex: `^${priority}$`, $options: "i" }; 
+        if (priority) {
+            filter.priority = { $regex: `^${priority}$`, $options: "i" };
         }
-        if(source){
-            filter.source = { $regex: source, $options: "i" }; 
+        if (source) {
+            filter.source = { $regex: source, $options: "i" };
         }
-        if(rep){
+        if (rep) {
             filter["createdBy.name"] = {
                 $regex: rep, $options: "i"
             };
@@ -158,23 +159,180 @@ exports.searchLeads = async(req, res)  =>{
 
         const leads = await Lead.find(filter);
 
-        if(!leads || leads.length === 0){
+        if (!leads || leads.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: "No leads found for given filters"
             });
         }
-       
+
         res.status(200).json({
             success: true,
             leads
         });
     } catch (error) {
         console.log(error.message);
-        res.status(500).json({message: "Internal Server Error"})
+        res.status(500).json({ message: "Internal Server Error" })
     }
 }
 
+exports.getBant = async (req, res) => {
+  try {
+    const leads = await Lead.find({ isDeleted: false });
+    const bants = leads.map(lead => {
+      const { bant, name, businessName } = lead;
+      const filteredBant = {};
+      if (bant.budget?.confirmed || bant.budget?.amount) {
+        filteredBant.budget = bant.budget;
+      }
+      if (bant.authority?.confirmed || bant.authority?.contactName) {
+        filteredBant.authority = bant.authority;
+      }
+      if (bant.need?.confirmed || bant.need?.description) {
+        filteredBant.need = bant.need;
+      }
+      if (bant.timeline?.confirmed || bant.timeline?.deadline) {
+        filteredBant.timeline = bant.timeline;
+      }
+      if (Object.keys(filteredBant).length > 0) {
+        return {
+          leadId: lead._id,
+          name,
+          businessName,
+          bant: filteredBant
+        };
+      } else {
+        return null;
+      }
+    }).filter(Boolean); 
+
+    res.json({ success: true, data: bants });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+}
+
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const leads = await Lead.find();
+
+        const map = {};
+
+        leads.forEach((lead) => {
+            // Skip if not Closed Won
+            if (lead.stage !== "Closed Won") return;
+            
+            let repName = lead.assignedTo;
+            if (!repName) {
+                if (lead.branch === "Mumbai") repName = "Unassigned Mumbai";
+                else if (lead.branch === "Bangalore") repName = "Unassigned Bangalore";
+                else if (lead.branch === "Mysore") repName = "Unassigned Mysore";
+                else repName = "Unknown";
+            }
+
+            if (!map[repName]) {
+                map[repName] = {
+                    name: repName,
+                    closed: 0,
+                    revenue: 0,
+                    branches: new Set(),
+                };
+            }
+
+            const rep = map[repName];
+
+            if (lead.branch) {
+                rep.branches.add(lead.branch.toLowerCase().trim());
+            }
+
+            rep.closed += 1;
+            rep.revenue += lead.dealValue || 0;
+        });
+
+        // Function to determine branch label based on branches
+        function getBranchLabel(branchesSet) {
+            const branches = [...branchesSet];
+            
+            const hasBangalore = branches.some(b => b === "bangalore");
+            const hasMysore = branches.some(b => b === "mysore");
+            const hasMumbai = branches.some(b => b === "mumbai");
+            
+            // Priority: BLR + MYS > Bangalore > Mumbai > Mysore
+            if (hasBangalore && hasMysore) return "BLR + MYS";
+            if (hasBangalore) return "Bangalore";
+            if (hasMumbai) return "Mumbai";
+            if (hasMysore) return "Mysore";
+            
+            return "Other";
+        }
+
+        // Convert map to array and calculate branch label
+        let result = Object.values(map).map((rep) => ({
+            name: rep.name,
+            closed: rep.closed,
+            revenue: rep.revenue,
+            branch: getBranchLabel(rep.branches),
+        }));
+
+        // Sort by revenue within each branch category
+        result.sort((a, b) => b.revenue - a.revenue);
+
+        // Function to format revenue
+        function formatRevenue(val) {
+            if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
+            if (val >= 1000) return `₹${(val / 1000).toFixed(1)}K`;
+            return `₹${val}`;
+        }
+
+        // Get top performer from each branch category
+        const branchCategories = ["BLR + MYS", "Bangalore", "Mumbai", "Mysore"];
+        const selectedReps = [];
+        
+        for (const category of branchCategories) {
+            const bestInCategory = result.find(rep => rep.branch === category);
+            if (bestInCategory && selectedReps.length < 3) {
+                selectedReps.push(bestInCategory);
+            }
+        }
+        
+        // If we still don't have 3 reps, fill with remaining top performers
+        if (selectedReps.length < 3) {
+            for (const rep of result) {
+                if (!selectedReps.includes(rep) && selectedReps.length < 3) {
+                    selectedReps.push(rep);
+                }
+            }
+        }
+
+        // Format the leaderboard data
+        const leaderboardData = selectedReps.slice(0, 3).map((rep, index) => ({
+            rank: index + 1,
+            initials: rep.name
+                .split(" ")
+                .map(n => n[0])
+                .join("")
+                .toUpperCase()
+                .slice(0, 2),
+            name: rep.name,
+            branch: rep.branch,
+            closed: rep.closed,
+            revenue: formatRevenue(rep.revenue),
+        }));
+
+        res.json({
+            success: true,
+            data: leaderboardData,
+        });
+    } catch (error) {
+        console.error("Leaderboard Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+            error: error.message
+        });
+    }
+};
 
 exports.CreateLead = async (req, res) => {
     try {
