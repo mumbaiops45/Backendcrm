@@ -1,6 +1,6 @@
 
 const jwt = require('jsonwebtoken');
-const JWT_SECRETE = "NNCMumbai@1232!"
+// const JWT_SECRETE = "NNCMumbai@1232!"
 
 // const Auth = (req, res, next) =>{
 //     const token = req.header('auth-token') || req.header('Authorization')?.replace('Bearer', '');
@@ -27,7 +27,7 @@ const Auth = (req, res, next) => {
         return res.status(401).send({ error: "Please authenticate using a valid token" });
     }
     try {
-        const data = jwt.verify(token, JWT_SECRETE);
+        const data = jwt.verify(token, process.env.JWT_SECRETE);
         console.log('Decoded token:', data.user);
         req.user = data.user;
         next();

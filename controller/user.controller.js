@@ -3,7 +3,7 @@ var jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const {  validationResult } = require("express-validator");
 
-const JWT_SECRETE = "NNCMumbai@1232!"
+// const JWT_SECRETE = "NNCMumbai@1232!"
 
 
 exports.Register = async (req, res) => {
@@ -36,7 +36,7 @@ exports.Register = async (req, res) => {
             }
         };
 
-        const AuthToken = jwt.sign(data, JWT_SECRETE);
+        const AuthToken = jwt.sign(data,  process.env.JWT_SECRETE);
 
         res.json({ AuthToken });
 
@@ -85,7 +85,7 @@ exports.loginUser = async (req, res) => {
 
     
     const data = { user: { id: user.id, role: user.role } };
-    const Authtoken = jwt.sign(data, JWT_SECRETE);
+    const Authtoken = jwt.sign(data,  process.env.JWT_SECRETE);
 
     res.json({
       Authtoken,
