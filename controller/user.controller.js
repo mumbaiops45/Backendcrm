@@ -46,46 +46,102 @@ exports.Register = async (req, res) => {
     }
 };
 
-exports.loginUser =  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    const { email, password } = req.body;
-    
-    try {
-      const user = await User.findOne({ email });
-      console.log("email", user.email)
-      console.log("password", user.password);
-      if (!user) {
-        return res
-          .status(400)
-          .json({ error: "Please try to login with correct credentials12" });
-      }
-       if (!user.role) {
-            user.role = 'rep'; 
-            await user.save();
-            console.log(`Fixed role for user ${user.email} to rep`);
-        }
-
-      const passwordCompare = await bcrypt.compare(password, user.password);
-      if (!passwordCompare) {
-        return res
-          .status(400)
-          .json({ error: "Please try to login with correct credentials" });
-      }
-
-      const data = { user: { id: user.id ,  role: user.role} };
-      const Authtoken = jwt.sign(data, JWT_SECRETE);
-      res.json({ Authtoken,user: {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-                branch: user.branch
-            } });
-    } catch (error) {
-      console.error(error.message);
-      res.status(500).send("Internal Server Error");
-    }
+exports.loginUser = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
   }
+
+  const { email, password } = req.body;
+
+  try {
+   
+    const user = await User.findOne({ email });
+
+   
+    if (!user) {
+      return res
+        .status(400)
+        .json({ error: "Please try to login with correct credentials" });
+    }
+
+   
+    if (!user.role) {
+      user.role = "rep";
+      await user.save();
+      console.log(`Fixed role for user ${user.email} to rep`);
+    }
+
+    console.log("email", user.email);
+    console.log("password", user.password); 
+
+    
+    const passwordCompare = await bcrypt.compare(password, user.password);
+    if (!passwordCompare) {
+      return res
+        .status(400)
+        .json({ error: "Please try to login with correct credentials" });
+    }
+
+    
+    const data = { user: { id: user.id, role: user.role } };
+    const Authtoken = jwt.sign(data, JWT_SECRETE);
+
+    res.json({
+      Authtoken,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        branch: user.branch,
+      },
+    });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
+  }
+};
+
+// exports.loginUser =  async (req, res) => {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+
+//     const { email, password } = req.body;
+    
+//     try {
+//       const user = await User.findOne({ email });
+//       console.log("email", user.email)
+//       console.log("password", user.password);
+//       if (!user) {
+//         return res
+//           .status(400)
+//           .json({ error: "Please try to login with correct credentials12" });
+//       }
+//        if (!user.role) {
+//             user.role = 'rep'; 
+//             await user.save();
+//             console.log(`Fixed role for user ${user.email} to rep`);
+//         }
+
+//       const passwordCompare = await bcrypt.compare(password, user.password);
+//       if (!passwordCompare) {
+//         return res
+//           .status(400)
+//           .json({ error: "Please try to login with correct credentials" });
+//       }
+
+//       const data = { user: { id: user.id ,  role: user.role} };
+//       const Authtoken = jwt.sign(data, JWT_SECRETE);
+//       res.json({ Authtoken,user: {
+//                 id: user.id,
+//                 email: user.email,
+//                 role: user.role,
+//                 branch: user.branch
+//             } });
+//     } catch (error) {
+//       console.error(error.message);
+//       res.status(500).send("Internal Server Error");
+//     }
+//   }
