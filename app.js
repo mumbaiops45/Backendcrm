@@ -9,6 +9,9 @@ const UserRouter = require("./router/user.router");
 const { Auth, authorizeRoles } = require("./middleware/Auth")
 const LeadRouter = require("./router/lead.router");
 const cors = require('cors');
+const dotenv = require("dotenv");
+dotenv.config();
+
 
 const ActivityRouter = require("./router/activity.router")
 const CreateCall = require("./router/call.router");
@@ -28,15 +31,19 @@ app.use(cors());
 app.use(express.json());
 
 
-main()
-  .then((res) => {
-    console.log("Connection Successfull");
-  })
-  .catch(err => console.log(err));
+// main()
+//   .then((res) => {
+//     console.log("Connection Successfull");
+//   })
+//   .catch(err => console.log(err));
 
-async function main() {
-  await mongoose.connect('mongodb://127.0.0.1:27017/test220');
-}
+// async function main() {
+//   await mongoose.connect('mongodb://127.0.0.1:27017/test220');
+// }
+
+mongoose.connect(process.env.MONGOURL)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log(err));
 
 
 app.use("/", UserRouter);
