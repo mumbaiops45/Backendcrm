@@ -41,6 +41,7 @@ app.use(express.json());
 //   await mongoose.connect('mongodb://127.0.0.1:27017/test220');
 // }
 
+
 mongoose.connect(process.env.MONGOURL)
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
