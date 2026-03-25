@@ -5,7 +5,9 @@ const { validationResult } = require('express-validator');
 
 exports.GetAlldata = async (req, res) => {
     try {
-        const Allleads = await Lead.find({}).populate("createdBy", "name")
+        const Allleads = await Lead.find({})
+        .sort({ createdAt: -1})
+        .populate("createdBy", "name")
             .populate("documents");
         res.json({ Allleads });
     } catch (error) {
@@ -228,7 +230,7 @@ exports.getLeaderboard = async (req, res) => {
                 if (lead.branch === "Mumbai") repName = "Unassigned Mumbai";
                 else if (lead.branch === "Bangalore") repName = "Unassigned Bangalore";
                 else if (lead.branch === "Mysore") repName = "Unassigned Mysore";
-                else repName = "Unknown";
+                else repName = "Arjun S";
             }
 
             if (!map[repName]) {
@@ -334,6 +336,7 @@ exports.getLeaderboard = async (req, res) => {
     }
 };
 
+
 exports.CreateLead = async (req, res) => {
     try {
         const errors = validationResult(req);
@@ -343,7 +346,7 @@ exports.CreateLead = async (req, res) => {
 
         const { name, businessName, businessType, phone, email, location,
             branch, stage, priority, source, dealValue, invoiceValue,
-            requirements, notes, bant, documents, assignedTo } = req.body;
+            requirements,  bant, documents, assignedTo } = req.body;
 
         let closedAt = null;
         if (stage === "Closed Won" || stage === "Closed Lost") {
@@ -364,8 +367,7 @@ exports.CreateLead = async (req, res) => {
             dealValue,
             invoiceValue,
             requirements,
-            assignedTo,
-            notes,
+            // assignedTo,
             bant,
             documents,
             closedAt,
@@ -380,6 +382,57 @@ exports.CreateLead = async (req, res) => {
     }
 }
 
+// exports.addLeadNote = async(req, res) =>{
+//     try {
+//         const {text} = req.body;
+
+//         if(!text){
+//             return res.status(400).json({message: "Note text is required"});
+//         }
+
+//         const lead = await Lead.findById(req.params.id);
+
+//         if(!lead){
+//             return res.status(400).json({message: "Lead not found"});
+//         }
+
+//         lead.notes.push({
+//             text,
+//             createdBy: req.user.id,
+//         });
+
+//         await lead.save();
+
+//         res.json({
+//             success: true,
+//             message: "Note added successfully",
+//             notes: lead.notes
+//         });
+//     } catch (error) {
+//         console.log(error.message);
+//         res.status(500).send("Internal Server Error");
+//     }
+// }
+
+// exports.getLeadNotes = async(req, res) => {
+//     try {
+//         const lead = await Lead.findById(req.params.id)
+//         .select("notes")
+//         .populate("notes.createdBy", "name");
+
+//         if(!lead){
+//             return res.status(404).json({message: "Lead not found"});
+//         }
+
+//         res.json({
+//             success: true,
+//             notes: lead.notes || []
+//         });
+//     } catch (error) {
+//         console.log(error.message);
+//         res.status(500).send("Internal Server Error");
+//     }
+// }
 
 exports.singleLeads = async (req, res) => {
     try {

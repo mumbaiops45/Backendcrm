@@ -107,6 +107,22 @@ const leadSchema = new Schema({
 
     requirements: { type: String, default: '' },
     notes: { type: String, default: '' },
+    // notes: {
+    //     type: [
+    //         {
+    //             text: String,
+    //             createdby: {
+    //                 type: mongoose.Schema.Types.ObjectId,
+    //                 ref: 'User'
+    //             },
+    //             createdAt: {
+    //                 type: Date, 
+    //                 default: Date.now
+    //             }
+    //         }
+    //     ],
+    //     default: []
+    // },
 
    
     bant: { type: BantSchema, default: () => ({}) },

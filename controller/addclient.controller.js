@@ -50,45 +50,48 @@ exports.FilterByStatus = async(req, res) => {
     }
 };
 
-exports.searchClients = async (req, res) => {
+
+
+exports.searchClients = async (req, res) =>{
   try {
-    const { clientName, city, category, project } = req.query;
+    const {clientName, location, category, project} = req.query;
 
-  
-    let searchQuery = {};
+    const orQueries = [];
 
+    if(clientName){
+      orQueries.push({clientName: {$regex: clientName , $options: "i"}});
+    }
+
+    if(location){
+   orQueries.push({location: {$regex: location, $options: "i"}});
+    }
+
+    if(category){
+      orQueries.push({service: {$regec: category, $options: "i"}});
+    }
+
+    if(project){
+      orQueries.push({project: {$regex, $options: "i"}});
+    }
+
+    let clients ;
+
+    if(orQueries.length === 0){
+      clients = await AddClient.find({});
+    }else {
+      clients = await AddClient.find({ $or: orQueries});
+    }
+
+    res.status(200).json({clients});
     
-    if (clientName) {
-      searchQuery.clientName = { $regex: new RegExp(clientName, 'i') };  
-    }
-
-    if (city) {
-      searchQuery.location = { $regex: new RegExp(city, 'i') }; 
-    }
-
-    if (category) {
-      searchQuery.service = { $regex: new RegExp(category, 'i') };  
-    }
-
-    if (project) {
-      searchQuery.project = { $regex: new RegExp(project, 'i') }; 
-    }
-
-    
-    const clients = await AddClient.find(searchQuery);
-
-   
-    if (clients.length === 0) {
-      return res.status(404).json({ message: 'No clients found with the given search criteria' });
-    }
-
-    
-    res.status(200).json({ clients });
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({message: "Internal Server Error"});
   }
-};
+}
+
+
+
 
 exports.AddClient =  async(req, res) =>{
     try {
@@ -104,7 +107,7 @@ exports.AddClient =  async(req, res) =>{
         const received = Number(amountReceived);
 
         if(received > total){
-            return res.status(400).jsin({message: "Amount received cannot be greater than the total value"});
+            return res.status(400).json({message: "Amount received cannot be greater than the total value"});
         }
 
         const newClient = new AddClient({

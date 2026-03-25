@@ -34,6 +34,8 @@ router.post("/create",
     Auth, CreateLead
     
 );
+
+
  
 router.get("/leads/:id", Auth, singleLeads )
 

@@ -119,7 +119,7 @@ exports.CreateDocument =  async (req, res) => {
     const { leadId, docType, description, documentDate, branch, invoiceAmount } = req.body;
 
     const doc = await Document.create({
-      lead: leadId || undefined,
+      lead: leadId,
       uploadedBy: req.user.id,
       branch: branch || req.user.branch,
       docType: docType || "Other",
@@ -136,6 +136,7 @@ exports.CreateDocument =  async (req, res) => {
       description: description || "",
       amount: invoiceAmount ? parseFloat(invoiceAmount) : undefined
     });
+    console.log("Incoming leadId:", req.body.leadId);
 
     res.status(201).json({
       success: true,
