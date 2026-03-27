@@ -78,6 +78,7 @@ exports.searchProposals = async(req, res) => {
   }
 }
 
+
 // exports.searchProposals = async (req, res) => {
 //   try {
 //     const { q, category, stage } = req.query;
