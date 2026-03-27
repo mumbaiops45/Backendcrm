@@ -68,7 +68,7 @@ exports.searchProposals = async(req, res) => {
     }
 
     if(!proposals || proposals.length === 0){
-      return res.status(404).json({message: "No proposals found matching your query"});
+       return res.status(200).json({proposals: []});
     }
 
     res.status(200).json({proposals});
@@ -79,61 +79,10 @@ exports.searchProposals = async(req, res) => {
 }
 
 
-// exports.searchProposals = async (req, res) => {
-//   try {
-//     const { q, category, stage } = req.query;
-
-//     let searchConditions = [];
-
-   
-//     if (q && q.trim() !== "") {
-//       const words = q.trim().split(/\s+/);
-//       const textConditions = words.map(word => {
-//         const regex = new RegExp(word, "i");
-//         return {
-//           $or: [
-//             { clientName: regex },
-//             { category: regex },
-//             { city: regex },
-//           ]
-//         };
-//       });
-//       searchConditions.push({ $and: textConditions });
-//     }
-
-   
-//     if (category && category.trim() !== "") {
-//       searchConditions.push({ category: category.trim() });
-//     }
-
-    
-//     if (stage && stage.trim() !== "") {
-//       searchConditions.push({ stage: stage.trim() });
-//     }
-
-  
-//     const query = searchConditions.length > 0 ? { $and: searchConditions } : {};
-
-//     const proposals = await Proposal.find(query).sort({ proposalDate: -1 });
-
-//     if (!proposals || proposals.length === 0) {
-//       return res.status(404).json({ message: "No proposals found matching your query" });
-//     }
-
-//     res.status(200).json({ proposals });
-//   } catch (error) {
-//     console.log("Search Proposals Error:", error.message);
-//     res.status(500).json({ message: "Internal Server Error" });
-//   }
-// };
-
-
 
 exports.getDashboardStats = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-
-   
     const matchDateFilter = {};
     if (startDate && endDate) {
       matchDateFilter.proposalDate = {
@@ -141,8 +90,6 @@ exports.getDashboardStats = async (req, res) => {
         $lte: new Date(endDate),
       };
     }
-
-   
     const activePipeline = await Proposal.aggregate([
       {
         $match: {
